@@ -1,7 +1,7 @@
 //
 //  iVersion.h
 //
-//  Version 1.10.3
+//  Version 1.11 beta 6
 //
 //  Created by Nick Lockwood on 26/01/2011.
 //  Copyright 2011 Charcoal Design
@@ -31,22 +31,29 @@
 //
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wobjc-missing-property-synthesis"
+
+
 #import <Availability.h>
 #undef weak_delegate
 #if __has_feature(objc_arc_weak) && \
-(!(defined __MAC_OS_X_VERSION_MIN_REQUIRED) || \
-__MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_8)
+(TARGET_OS_IPHONE || __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_8)
 #define weak_delegate weak
 #else
 #define weak_delegate unsafe_unretained
 #endif
 
 
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
+#if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
-#import <StoreKit/StoreKit.h>
 #else
 #import <Cocoa/Cocoa.h>
+#endif
+
+
+#if defined(IVERSION_USE_STOREKIT) && IVERSION_USE_STOREKIT
+#import <StoreKit/StoreKit.h>
 #endif
 
 
@@ -106,10 +113,6 @@ iVersionErrorCode;
 //bundle ID is not unique between iOS and Mac app stores
 @property (nonatomic, assign) NSUInteger appStoreID;
 
-//app-specific configuration - you may need to set some of these
-@property (nonatomic, copy) NSString *remoteVersionsPlistURL;
-@property (nonatomic, copy) NSString *localVersionsPlistPath;
-
 //application details - these are set automatically
 @property (nonatomic, copy) NSString *applicationVersion;
 @property (nonatomic, copy) NSString *applicationBundleID;
@@ -132,15 +135,15 @@ iVersionErrorCode;
 
 //debugging and prompt overrides
 @property (nonatomic, assign) BOOL useAllAvailableLanguages;
-@property (nonatomic, assign) BOOL disableAlertViewResizing;
 @property (nonatomic, assign) BOOL onlyPromptIfMainWindowIsAvailable;
-@property (nonatomic, assign) BOOL displayAppUsingStorekitIfAvailable;
 @property (nonatomic, assign) BOOL useAppStoreDetailsIfNoPlistEntryFound;
 @property (nonatomic, assign) BOOL checkAtLaunch;
 @property (nonatomic, assign) BOOL verboseLogging;
 @property (nonatomic, assign) BOOL previewMode;
 
 //advanced properties for implementing custom behaviour
+@property (nonatomic, copy) NSString *remoteVersionsPlistURL;
+@property (nonatomic, copy) NSString *localVersionsPlistPath;
 @property (nonatomic, copy) NSString *ignoredVersion;
 @property (nonatomic, strong) NSDate *lastChecked;
 @property (nonatomic, strong) NSDate *lastReminded;
@@ -149,10 +152,14 @@ iVersionErrorCode;
 @property (nonatomic, weak_delegate) id<iVersionDelegate> delegate;
 
 //manually control behaviour
-- (void)openAppPageInAppStore;
+- (BOOL)openAppPageInAppStore;
 - (void)checkIfNewVersion;
 - (NSString *)versionDetails;
 - (BOOL)shouldCheckForNewVersion;
 - (void)checkForNewVersion;
 
 @end
+
+
+#pragma GCC diagnostic pop
+
